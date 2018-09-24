@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>link-viz</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <canvas width="800" height="400"></canvas>
+    <input id="a_range" type="range" value="0" min="-10" max="10" step="any">
+    <input id="a_text" type="text" value="0" pattern="[\d\-\.]*">
+    <script>
+      require('./renderer.js')
+    </script>
+  </body>
+</html>
