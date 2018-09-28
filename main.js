@@ -3,8 +3,8 @@ const {app, BrowserWindow} = require('electron');
 let mainWindow; // eslint-disable-line fp/no-let
 
 const createWindow = () => {
-  // mainWindow = new BrowserWindow({width: 800, height: 600, useContentSize: true}); // eslint-disable-line fp/no-mutation
   mainWindow = new BrowserWindow(); // eslint-disable-line fp/no-mutation
+  mainWindow.setMenu(null);
   mainWindow.loadFile('index.html');
   // mainWindow.webContents.openDevTools()
   mainWindow.on('closed', () => {

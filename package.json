@@ -4,13 +4,15 @@
   "description": "link-viz",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder -w portable"
   },
   "repository": "https://github.com/Piroro-hs/link-viz",
   "author": "Piroro-hs",
   "license": "CC0-1.0",
   "devDependencies": {
     "electron": "^3.0.0",
+    "electron-builder": "^20.28.4",
     "eslint": "^4.19.1",
     "eslint-config-piroro": "github:Piroro-hs/eslint-config-piroro"
   },
