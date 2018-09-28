@@ -16,7 +16,7 @@ const linearAreaTheta = (a, l, tolerance) => {
   const step = 500;
   return Array(step)
     .fill()
-    .map((_, i) => (1 - (i / step) * 0.5) * Math.PI)
+    .map((_, i) => (1 - i / step) * Math.PI)
     .reduce(
       (acc, cur) => {
         const x = trajectoryX(a, l, cur);
@@ -84,6 +84,7 @@ store.subscribe(() => {
   const theta = linearAreaTheta(a, l, tolerance);
   document.querySelector('#a_range').value = a; // eslint-disable-line fp/no-mutation
   document.querySelector('#a_text').value = input.a; // eslint-disable-line fp/no-mutation
+  document.querySelector('#l').textContent = l; // eslint-disable-line fp/no-mutation
   document.querySelector('#linear_tolerance_text').value = input.tolerance; // eslint-disable-line fp/no-mutation
   document.querySelector('#linear_theta').textContent = Math.PI - theta; // eslint-disable-line fp/no-mutation
   document.querySelector('#linear_y').textContent = Math.abs(trajectoryY(a, l, theta)); // eslint-disable-line fp/no-mutation
