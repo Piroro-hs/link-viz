@@ -1,11 +1,6 @@
 /* eslint fp/no-mutation: ['error', {commonjs: true, allowThis: true, exceptions: [{object: 'ctx'}]}] */
 const {createStore} = require('redux');
 
-const toFloat = str => (str.padEnd().endsWith('.') ? NaN : parseFloat(str));
-
-const ctx = document.querySelector('canvas').getContext('2d');
-ctx.transform(1, 0, 0, 1, 400, 200);
-
 const trajectoryX = (a, l, theta) =>
   a > 0
     ? Math.cos(theta) + ((a - Math.cos(theta)) * l) / (a ** 2 - 2 * a * Math.cos(theta) + 1) ** 0.5
@@ -41,26 +36,36 @@ const SET_LINEAR_TOLERANCE = 'SET_LINEAR_TOLERANCE';
 const initialState = {
   a: 0,
   l: 1,
-  linear: {
-    tolerance: 0,
+  tolerance: 0,
+  ui: {
+    input: {
+      a: 0,
+      tolerance: 0,
+    },
+    startTime: Date.now(),
+    scale: 10,
   },
-  startTime: Date.now(),
-  scale: 10,
 };
 
 const reducer = (state = initialState, {type, payload}) => {
   switch (type) {
     case SET_A: {
-      const a = payload;
+      const parsed = parseFloat(payload);
+      const a = Number.isNaN(parsed) ? state.a : parsed;
       const l =
         ((a ** 6 + 6 * a ** 5 + 15 * a ** 4 + 4 * a ** 3 + 15 * a ** 2 + 6 * a + 1) /
           (a ** 2 + 2 * a + 1)) **
         0.5;
-      return {...state, a, l};
+      return {...state, a, l, ui: {...state.ui, input: {...state.ui.input, a: payload}}};
     }
     case SET_LINEAR_TOLERANCE: {
-      const tolerance = payload;
-      return {...state, linear: {tolerance}};
+      const parsed = parseFloat(payload);
+      const tolerance = Number.isNaN(parsed) ? state.tolerance : parsed;
+      return {
+        ...state,
+        tolerance,
+        ui: {...state.ui, input: {...state.ui.input, tolerance: payload}},
+      };
     }
     default:
       return state;
@@ -73,31 +78,28 @@ store.subscribe(() => {
   const {
     a,
     l,
-    linear: {tolerance},
+    tolerance,
+    ui: {input},
   } = store.getState();
   const theta = linearAreaTheta(a, l, tolerance);
   document.querySelector('#a_range').value = a; // eslint-disable-line fp/no-mutation
-  document.querySelector('#a_text').value = a; // eslint-disable-line fp/no-mutation
-  document.querySelector('#linear_tolerance_text').value = tolerance; // eslint-disable-line fp/no-mutation
+  document.querySelector('#a_text').value = input.a; // eslint-disable-line fp/no-mutation
+  document.querySelector('#linear_tolerance_text').value = input.tolerance; // eslint-disable-line fp/no-mutation
   document.querySelector('#linear_theta').textContent = Math.PI - theta; // eslint-disable-line fp/no-mutation
   document.querySelector('#linear_y').textContent = Math.abs(trajectoryY(a, l, theta)); // eslint-disable-line fp/no-mutation
 });
 
-document.querySelector('#a_range').addEventListener('input', ({target: {value}}) => {
-  store.dispatch({type: SET_A, payload: value});
-});
-document.querySelector('#a_text').addEventListener('input', ({target: {value}}) => {
-  const parsed = toFloat(value);
-  if (!Number.isNaN(parsed)) {
-    store.dispatch({type: SET_A, payload: parsed});
-  }
-});
-document.querySelector('#linear_tolerance_text').addEventListener('input', ({target: {value}}) => {
-  const parsed = toFloat(value);
-  if (!Number.isNaN(parsed)) {
-    store.dispatch({type: SET_LINEAR_TOLERANCE, payload: parsed});
-  }
-});
+const update = (type, {target: {value}}) => {
+  store.dispatch({type, payload: value});
+};
+document.querySelector('#a_range').addEventListener('input', update.bind(undefined, SET_A));
+document.querySelector('#a_text').addEventListener('input', update.bind(undefined, SET_A));
+document
+  .querySelector('#linear_tolerance_text')
+  .addEventListener('input', update.bind(undefined, SET_LINEAR_TOLERANCE));
+
+const ctx = document.querySelector('canvas').getContext('2d');
+ctx.transform(1, 0, 0, 1, 400, 200);
 
 const motor = (scale = 1) => {
   ctx.beginPath();
@@ -173,9 +175,8 @@ const draw = () => {
   const {
     a,
     l,
-    startTime,
-    linear: {tolerance},
-    scale,
+    tolerance,
+    ui: {startTime, scale},
   } = store.getState();
   const theta = ((Date.now() - startTime) / 2000) * 2 * Math.PI;
   motor(scale);
